@@ -296,7 +296,19 @@ union ValueT(bool NATIVE=false, HiBON,  Document) {
         }
     }
 
+
+    alias CastTypes=AliasSeq!(uint, int, ulong, long, float, double, string);
+
+    void opAssign(T)(T x) if (!isOneOf!(T, typeof(this.tupleof))) {
+        alias UnqualT=Unqual!T;
+        alias CastT=castTo!(UnqualT, CastTypes);
+        static assert(is(CastT==void), format("Type %s not supported", T.stringof));
+        alias E=asType!UnqualT;
+        opAssing(cast(CastT)x);
+    }
+
     alias TypeT(Type aType) = typeof(by!aType());
+
 
     uint size(Type E)() const pure nothrow {
         static if (isHiBONType(E)) {
