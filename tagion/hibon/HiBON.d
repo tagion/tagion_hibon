@@ -11,7 +11,7 @@
  */
 module tagion.hibon.HiBON;
 
-            import std.stdio;
+import std.stdio;
 
 //import std.datetime;   // Date, DateTime
 import std.container : RedBlackTree;
@@ -19,13 +19,14 @@ import std.format;
 import std.meta : staticIndexOf;
 import std.algorithm.iteration : map, fold, each;
 import std.traits : EnumMembers, ForeachType, Unqual, isMutable, isBasicType;
+import std.meta : AliasSeq;
 import std.bitmanip : write;
 import std.conv : to;
 import std.typecons : TypedefType;
 
 import tagion.hibon.Document;
 import tagion.hibon.HiBONBase;
-
+import tagion.Base : CastTo;
 
 version(none)
 @trusted
@@ -113,16 +114,25 @@ ubyte[] fromHex(in string hex) pure nothrow {
         //     this.type  = Value.asType!T;
         //     this.key  = key;
         // }
+        alias CastTypes=AliasSeq!(uint, int, ulong, long, string);
 
         @trusted
         this(T)(T x, string key) { //const pure if ( is(T == const) ) {
             alias BaseT=TypedefType!T;
-            alias MutableT = Unqual!BaseT;
-            this.value = cast(MutableT)x;
-            enum E=Value.asType!MutableT;
-            static assert(E !is Type.NONE, format("Type %s is not valid", T.stringof));
-            this.type  = E;
+            alias UnqualT = Unqual!BaseT;
+            enum E=Value.asType!UnqualT;
             this.key  = key;
+            static if (E is Type.NONE) {
+                alias CastT=CastTo!(UnqualT, CastTypes);
+                static assert(!is(CastT==void), format("Type %s is not valid", T.stringof));
+                alias CastE=Value.asType!CastT;
+                this.type = CastE;
+                this.value=cast(CastT)x;
+            }
+            else {
+                this.type = E;
+                this.value= cast(UnqualT)x;
+            }
 
         }
 
