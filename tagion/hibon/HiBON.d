@@ -26,6 +26,7 @@ import std.typecons : TypedefType;
 
 import tagion.hibon.Document;
 import tagion.hibon.HiBONBase;
+import tagion.hibon.HiBONException;
 import tagion.Base : CastTo;
 
 version(none)

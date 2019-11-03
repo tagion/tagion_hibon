@@ -2,7 +2,7 @@ module tagion.hibon.HiBONBase;
 
 import tagion.Types;
 import tagion.Base : isOneOf;
-import tagion.TagionExceptions : Check, TagionException;
+
 
 import std.format;
 import std.meta : AliasSeq; //, Filter;
@@ -11,7 +11,7 @@ import std.typecons : Typedef;
 
 import std.system : Endian;
 import bin = std.bitmanip;
-
+import tagion.hibon.HiBONException;
 alias binread(T, R) = bin.read!(T, Endian.littleEndian, R);
 
 void binwrite(T, R, I)(R range, const T value, I index) pure {
@@ -19,18 +19,6 @@ void binwrite(T, R, I)(R range, const T value, I index) pure {
     alias BaseT=TypedefType!(T);
     bin.write!(BaseT, Endian.littleEndian, R)(range, cast(BaseT)value, index);
 }
-
-/**
- * Exception type used by tagion.utils.BSON module
- */
-@safe
-class HiBONException : TagionException {
-    this(string msg, string file = __FILE__, size_t line = __LINE__ ) {
-        super( msg, file, line );
-    }
-}
-
-alias check=Check!HiBONException;
 
 
 enum Type : ubyte {

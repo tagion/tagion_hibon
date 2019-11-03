@@ -16,6 +16,7 @@ import std.range.primitives : walkLength;
 import tagion.Types : decimal_t;
 import tagion.Base : isOneOf;
 import tagion.hibon.HiBONBase;
+import tagion.hibon.HiBONException;
 
 static assert(uint.sizeof == 4);
 
