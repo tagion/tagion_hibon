@@ -519,7 +519,9 @@ static assert(uint.sizeof == 4);
                     assert(e.type is E);
                     assert(e.isType!U);
 
-                    assert(e.isThat!isBasicType);
+                    static if(E !is Type.BIGINT) {
+                        assert(e.isThat!isBasicType);
+                    }
                 }
             }
 

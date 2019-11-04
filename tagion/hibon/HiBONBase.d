@@ -260,7 +260,7 @@ union ValueT(bool NATIVE=false, HiBON,  Document) {
     }
 
     @trusted
-    this(T)(T x) if (isOneOf!(Unqual!T, typeof(this.tupleof)) && !is(T : const(Document)) ) {
+    this(T)(T x) if (isOneOf!(Unqual!T, typeof(this.tupleof)) && !is(T == struct) ) {
         alias MutableT = Unqual!T;
         static foreach(m; __traits(allMembers, ValueT) ) {
             static if ( is(typeof(__traits(getMember, this, m)) == MutableT ) ){
@@ -276,6 +276,11 @@ union ValueT(bool NATIVE=false, HiBON,  Document) {
             }
         }
         assert (0, format("%s is not supported", T.stringof ) );
+    }
+
+    @trusted
+    this(const BigNumber big) {
+        bigint=big;
     }
 
     @trusted
