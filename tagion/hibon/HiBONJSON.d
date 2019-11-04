@@ -8,7 +8,9 @@ import std.format;
 import std.traits : EnumMembers, Unqual, ReturnType, ForeachType;
 import std.range.primitives : isInputRange;
 
-import tagion.hibon.HiBONBase : Type, isNative, isArray, isHiBONType, HiBONException;
+import tagion.hibon.BigNumber;
+import tagion.hibon.HiBONBase : Type, isNative, isArray, isHiBONType;
+import tagion.hibon.HiBONException;
 import tagion.hibon.HiBON : HiBON;
 import tagion.hibon.Document : Document;
 // import tagion.utils.JSONOutStream;
@@ -53,6 +55,8 @@ enum typeMap=[
     Type.INT64    : "i64",
     Type.UINT32   : "u32",
     Type.UINT64   : "u64",
+    Type.BIGINT   : "big",
+
     Type.DEFINED_NATIVE : NotSupported,
     Type.BINARY         : "bin",
     Type.INT32_ARRAY    : "i32[]",
@@ -120,10 +124,10 @@ struct toJSONT(bool HASHSAFE) {
                             else {
                                 auto doc_element=new JSONValue[2];
                                 doc_element[TYPE]=JSONValue(typeMap[E]);
-                                static if (E is Type.UTC) {
+                                static if (E is UTC) {
                                     assert(0, format("%s is not implemented yet", E));
                                 }
-                                else static if (isArray(E) && (E !is Type.BINARY)) {
+                                else static if (isArray(E) && (E !is BINARY)) {
                                     alias T=Document.Value.TypeT!E;
                                     alias U=ForeachType!T;
                                     alias JSType=JSONTypeT!U;
@@ -132,6 +136,8 @@ struct toJSONT(bool HASHSAFE) {
                                         array~=toJSONType(a);
                                     }
                                     doc_element[VALUE]=array;
+                                }
+                                else static if(E is BIGINT) {
                                 }
                                 else {
                                     doc_element[VALUE]=toJSONType(e.by!E);
@@ -210,6 +216,9 @@ struct toJSONT(bool HASHSAFE) {
                 return cast(double)x;
             }
         }
+        else static if(is(T : const BigNumber)) {
+            assert(0, format("%s is not supported yet:", T.stringof));
+        }
         else {
             static assert(0, format("Unsuported type %s", T.stringof));
         }
@@ -252,6 +261,9 @@ HiBON toHiBON(scope const JSONValue json) {
                 array[i]=a.get!U;
             }
             return array.idup;
+        }
+        else static if (is(T : const BigNumber)) {
+
         }
         else {
             static assert(0, format("Type %s is not supported", T.stringof));
@@ -300,6 +312,9 @@ HiBON toHiBON(scope const JSONValue json) {
                                 }
                                 sub_result[key]=array.idup;
 
+                            }
+                            else static if (E is BIGINT) {
+                                assert(0, format("%s is not supported yet", E));
                             }
                             else {
                                 sub_result[key]=get!T(value);

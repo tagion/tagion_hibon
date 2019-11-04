@@ -12,6 +12,8 @@ import std.typecons : Typedef;
 import std.system : Endian;
 import bin = std.bitmanip;
 import tagion.hibon.HiBONException;
+import tagion.hibon.BigNumber;
+
 alias binread(T, R) = bin.read!(T, Endian.littleEndian, R);
 
 void binwrite(T, R, I)(R range, const T value, I index) pure {
@@ -20,6 +22,15 @@ void binwrite(T, R, I)(R range, const T value, I index) pure {
     bin.write!(BaseT, Endian.littleEndian, R)(range, cast(BaseT)value, index);
 }
 
+@safe
+void array_write(T)(ref ubyte[] buffer, T array, ref size_t index) pure if ( is(T : U[], U) && isBasicType!U ) {
+    const ubytes = cast(const(ubyte[]))array;
+    immutable new_index = index + ubytes.length;
+    scope(success) {
+        index = new_index;
+    }
+    buffer[index..new_index] = ubytes;
+}
 
 enum Type : ubyte {
     NONE            = 0x00,  /// End Of Document
@@ -31,7 +42,7 @@ enum Type : ubyte {
         INT32           = 0x10,  /// 32-bit integer
         INT64           = 0x12,  /// 64-bit integer,
         //       FLOAT128        = 0x13, /// Decimal 128bits
-        //       BIGINT          = 0x1B,  /// Signed Bigint
+        BIGINT          = 0x1B,  /// Signed Bigint
 
         UINT32          = 0x20,  // 32 bit unsigend integer
         FLOAT32         = 0x21,  // 32 bit Float
@@ -140,6 +151,8 @@ union ValueT(bool NATIVE=false, HiBON,  Document) {
     @Type(Type.INT64)     long      int64;
     @Type(Type.UINT32)    uint      uint32;
     @Type(Type.UINT64)    ulong     uint64;
+    @Type(Type.BIGINT)    BigNumber bigint;
+
     static if ( !is(Document == void) ) {
         @Type(Type.NATIVE_DOCUMENT) Document    native_document;
     }
@@ -495,14 +508,4 @@ unittest { // Check is_key_valid
     assert(is_key_valid(text));
     text~='B';
     assert(!is_key_valid(text));
-}
-
-@safe
-void array_write(T)(ref ubyte[] buffer, T array, ref size_t index) pure if ( is(T : U[], U) && isBasicType!U ) {
-    const ubytes = cast(const(ubyte[]))array;
-    immutable new_index = index + ubytes.length;
-    scope(success) {
-        index = new_index;
-    }
-    buffer[index..new_index] = ubytes;
 }

@@ -7,21 +7,35 @@ import std.internal.math.biguintnoasm : BigDigit;
 //import std.conv : emplace;
 import std.range.primitives;
 import std.traits;
+import std.system : Endian;
 
 import tagion.hibon.HiBONException : check;
+import tagion.hibon.BigNumber;
 
 @safe
-struct Number {
-    protected union {
+struct BigNumber {
+    private union {
         BigInt x;
         struct {
-            BigDigit[] data;
-            bool sign;
+            BigDigit[] _data;
+            bool _sign;
         }
     }
-    enum ZERO=Number(0);
-    enum ONE=Number(1);
-    enum MINUSONE=Number(-1);
+
+
+    @trusted
+    const(BigDigit[]) data() const pure nothrow {
+        return _data;
+    }
+
+    @trusted
+    bool sign() const pure nothrow {
+        return sign;
+    }
+
+    enum ZERO=BigNumber(0);
+    enum ONE=BigNumber(1);
+    enum MINUSONE=BigNumber(-1);
 
     // struct EmplaceBigInt {
     //     BigDigit[] data;
@@ -36,8 +50,6 @@ struct Number {
     this(const(BigInt) x) pure nothrow {
         this.x=x;
     }
-
-
 
     @trusted
     this(Range)(Range s) if (
@@ -64,16 +76,13 @@ struct Number {
             (data.length % BigDigit.sizeof) is bool.sizeof &&
             (data.length > BigDigit.sizeof),
             format("Size of byte stream does not match the Number size (size=%d)", data.length));
-        // EmplaceBigInt em;
-        this.sign=(data[0] !is 0);
-        this.data=cast(BigDigit[])(data)[0..data.length/BigDigit.sizeof].dup;
-//        emplace(&x, em);
+        this._data=cast(BigDigit[])(data)[0..data.length/BigDigit.sizeof].dup;
+        this._sign=(data[$-1] !is 0);
     }
-    //this(Range)(Range s) if (
 
     @trusted
-    Number opBinary(string op, T)(T y) pure nothrow const {
-        static if (is(T:const(Number))) {
+    BigNumber opBinary(string op, T)(T y) pure nothrow const {
+        static if (is(T:const(BigNumber))) {
             enum code=format("auto result=x %s y.x;", op);
 //            auto result=x + y.x;
         }
@@ -84,23 +93,23 @@ struct Number {
         //      enum code=format("x %s y.x;", op);
         pragma(msg, code);
         mixin(code);
-        return Number(result);
+        return BigNumber(result);
     }
 
     @trusted
-    Number opAssign(T)(T x) pure nothrow if (isIntegral!T) {
+    BigNumber opAssign(T)(T x) pure nothrow if (isIntegral!T) {
         this.x=x;
         return this;
     }
 
     @trusted
-    Number opUnary(string op)() pure nothrow const {
-        return Number(mixin("%sx;",op));
+    BigNumber opUnary(string op)() pure nothrow const {
+        return BigNumber(mixin("%sx;",op));
     }
 
     @trusted
-    Number opOpAssign(string op, T)(T y) pure nothrow {
-        static if (is(T:const(Number))) {
+    BigNumber opOpAssign(string op, T)(T y) pure nothrow {
+        static if (is(T:const(BigNumber))) {
             enum code=format("auto result=x %s y.x;", op);
         }
         else {
@@ -109,11 +118,11 @@ struct Number {
         //enum code=format("x%s=y.x;",op);
         pragma(msg, code);
         mixin(code);
-        return Number(result);
+        return BigNumber(result);
     }
 
     @trusted
-    bool opEquals()(auto ref const Number y) const pure {
+    bool opEquals()(auto ref const BigNumber y) const pure {
         return x == y.x;
     }
 
@@ -123,7 +132,7 @@ struct Number {
     }
 
     @trusted
-    int opCmp(ref const Number y) pure nothrow const {
+    int opCmp(ref const BigNumber y) pure nothrow const {
         return x.opCmp(y.x);
     }
 
@@ -133,7 +142,7 @@ struct Number {
     }
 
     @trusted
-    int opCmp(T:Number)(const T y) pure nothrow const {
+    int opCmp(T:BigNumber)(const T y) pure nothrow const {
         return x.opCmp(y.x);
     }
 
@@ -160,4 +169,5 @@ struct Number {
                 T.stringof, x, T.min, T.max));
         return x.to!T;
     }
+
 }

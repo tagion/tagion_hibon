@@ -15,6 +15,7 @@ import std.range.primitives : walkLength;
 
 import tagion.Types : decimal_t;
 import tagion.Base : isOneOf;
+import tagion.hibon.BigNumber;
 import tagion.hibon.HiBONBase;
 import tagion.hibon.HiBONException;
 
@@ -271,6 +272,9 @@ static assert(uint.sizeof == 4);
         }
         else static if (is(T : const Document)) {
             buffer.array_write(x.data, index);
+        }
+        else static if (is(T : const BigNumber)) {
+            assert(0, "Not supported yet");
         }
         else {
             buffer.binwrite(x, &index);
