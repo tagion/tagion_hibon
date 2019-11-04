@@ -11,9 +11,6 @@
  */
 module tagion.hibon.HiBON;
 
-import std.stdio;
-
-//import std.datetime;   // Date, DateTime
 import std.container : RedBlackTree;
 import std.format;
 import std.meta : staticIndexOf;
@@ -692,11 +689,4 @@ ubyte[] fromHex(in string hex) pure nothrow {
         }
     }
 
-    unittest {
-        auto hibon=new HiBON;
-        immutable int x=42;
-        hibon["int"]=x;
-        const m=hibon["int"];
-        writefln("m.type=%s", m.type);
-    }
 }
