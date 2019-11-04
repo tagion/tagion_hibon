@@ -240,13 +240,20 @@ static assert(uint.sizeof == 4);
         return Type.sizeof + ubyte.sizeof + key.length;
     }
 
-    static size_t sizeT(T)(Type type, string key, const(T) x) pure nothrow {
+    static size_t sizeT(T)(Type type, string key, const(T) x) pure { //{ nothrow {
         size_t size = sizeKey(key);
         static if ( is(T: U[], U) ) {
             size += uint.sizeof + (x.length*U.sizeof);
         }
         else static if(is(T : const Document)) {
             size += x.data.length;
+        }
+        else static if(is(T : const BigNumber)) {
+            import std.internal.math.biguintnoasm : BigDigit;
+            debug writefln("%s Before size=%d", T.stringof, size);
+            size += bool.sizeof+uint.sizeof+x.data.length*BigDigit.sizeof;
+            debug writefln("%s After  size=%d", T.stringof, size);
+
         }
         else {
             size += T.sizeof;
@@ -274,7 +281,15 @@ static assert(uint.sizeof == 4);
             buffer.array_write(x.data, index);
         }
         else static if (is(T : const BigNumber)) {
-            assert(0, "Not supported yet");
+            import std.internal.math.biguintnoasm : BigDigit;
+            immutable size=cast(uint)(bool.sizeof+x.data.length*BigDigit.sizeof);
+            debug writefln("BigNumber size=%d", size);
+            buffer.binwrite(size, &index);
+            debug writefln("BigNumber index=%d", index);
+            buffer.array_write(x.data, index);
+            debug writefln("BigNumber index=%d", index);
+            buffer.binwrite(x.sign, &index);
+            debug writefln("BigNumber index=%d", index);
         }
         else {
             buffer.binwrite(x, &index);
@@ -368,7 +383,6 @@ static assert(uint.sizeof == 4);
                     break;
                 }
                 enum name = range.fieldNames[i];
-//                writefln("name=%s", name);
                 alias U = range.Types[i];
                 enum  E = Value.asType!U;
                 build(buffer, E, name, t, index);
@@ -404,24 +418,29 @@ static assert(uint.sizeof == 4);
         }
 
         alias Tabel = Tuple!(
-            float,  Type.FLOAT32.stringof,
-            double, Type.FLOAT64.stringof,
+            // float,  Type.FLOAT32.stringof,
+            // double, Type.FLOAT64.stringof,
+            BigNumber, Type.BIGINT.stringof,
             bool,   Type.BOOLEAN.stringof,
             int,    Type.INT32.stringof,
             long,   Type.INT64.stringof,
             uint,   Type.UINT32.stringof,
             ulong,  Type.UINT64.stringof,
+
 //                utc_t,  Type.UTC.stringof
             );
 
         Tabel test_tabel;
-        test_tabel.FLOAT32 = 1.23;
-        test_tabel.FLOAT64 = 1.23e200;
+        // test_tabel.FLOAT32 = 1.23;
+        // test_tabel.FLOAT64 = 1.23e200;
         test_tabel.INT32   = -42;
         test_tabel.INT64   = -0x0123_3456_789A_BCDF;
         test_tabel.UINT32   = 42;
         test_tabel.UINT64   = 0x0123_3456_789A_BCDF;
         test_tabel.BOOLEAN  = true;
+        writeln("Before bigint");
+        test_tabel.BIGINT   = BigNumber("-1234_5678_9123_1234_5678_9123_1234_5678_9123");
+        writeln("After bigint");
 
         alias TabelArray = Tuple!(
             immutable(ubyte)[],  Type.BINARY.stringof,
@@ -432,9 +451,11 @@ static assert(uint.sizeof == 4);
             immutable(uint)[],   Type.UINT32_ARRAY.stringof,
             immutable(ulong)[],  Type.UINT64_ARRAY.stringof,
             immutable(bool)[],   Type.BOOLEAN_ARRAY.stringof,
-            string,              Type.STRING.stringof
+            string,              Type.STRING.stringof,
+
 
             );
+
         TabelArray test_tabel_array;
         test_tabel_array.BINARY        = [1, 2, 3];
         test_tabel_array.FLOAT32_ARRAY = [-1.23, 3, 20e30];
@@ -445,6 +466,7 @@ static assert(uint.sizeof == 4);
         test_tabel_array.UINT64_ARRAY  = [0x17, 0xffff_aaaa, 1, 42];
         test_tabel_array.BOOLEAN_ARRAY = [true, false];
         test_tabel_array.STRING        = "Text";
+        writeln("After tabel");
 
         { // Document with simple types
             //test_tabel.UTC      = 1234;
@@ -453,21 +475,36 @@ static assert(uint.sizeof == 4);
 
             { // Document with a single value
                 index = make(buffer, test_tabel, 1);
+                writefln("index=%d", index);
+                immutable data = buffer[0..index].idup;
+//                immutable data = buffer[0..$].idup;
+                writefln("data=%s", data);
+                const doc=Document(data);
+                writefln("doc.length=%d", doc.length);
+                assert(doc.length is 1);
+                // assert(doc[Type.FLOAT32.stringof].get!float == test_tabel[0]);
+            }
+
+            { // Document with a single value
+                index = make(buffer, test_tabel, 1);
                 immutable data = buffer[0..index].idup;
                 const doc=Document(data);
 //                writefln("doc.length=%d", doc.length);
                 assert(doc.length is 1);
-                assert(doc[Type.FLOAT32.stringof].get!float == test_tabel[0]);
+                // assert(doc[Type.FLOAT32.stringof].get!BigNumber == test_tabel[0]);
             }
 
             { // Document including basic types
+                writefln("Before make");
                 index = make(buffer, test_tabel);
+                writefln("After make");
                 immutable data = buffer[0..index].idup;
                 const doc=Document(data);
 
                 auto keys=doc.keys;
                 foreach(i, t; test_tabel) {
                     enum name = test_tabel.fieldNames[i];
+                    writefln("%d name=%s", i, name);
                     alias U = test_tabel.Types[i];
                     enum  E = Value.asType!U;
                     assert(doc.hasElement(name));
@@ -643,7 +680,7 @@ static assert(uint.sizeof == 4);
                 TypeCase:
                 switch(type) {
                     static foreach(E; EnumMembers!Type) {
-                        static if (.isArray(E) || (E is STRING) || (E is DOCUMENT) ) {
+                        static if (isHiBONType(E)) {
                         case E:
                             static if (E is Type.DOCUMENT) {
                                 immutable byte_size = *cast(uint*)(data[valuePos..valuePos+uint.sizeof].ptr);
@@ -659,13 +696,19 @@ static assert(uint.sizeof == 4);
 //                                }
                                 }
                             }
+                            else static if (E is BIGINT) {
+                                assert(0, format("Type %s not implemented", E));
+                            }
+                            else {
+                                if (isHiBONType(type)) {
+                                    return cast(Value*)(data[valuePos..$].ptr);
+                                }
+                            }
                             break TypeCase;
                         }
                     }
                 default:
-                    if (isHiBONType(type)) {
-                        return cast(Value*)(data[valuePos..$].ptr);
-                    }
+                    //empty
                 }
                 .check(0, format("Invalid type %s", type));
 
@@ -760,6 +803,14 @@ static assert(uint.sizeof == 4);
                                     immutable byte_size = *cast(uint*)(data[valuePos..binary_array_pos].ptr);
                                     return binary_array_pos + byte_size;
                                     // }
+                                }
+                                static if (E is BIGINT) {
+                                    immutable binary_array_pos = valuePos+uint.sizeof;
+                                    immutable byte_size = *cast(uint*)(data[valuePos..binary_array_pos].ptr);
+                                    //debug writefln("byte_size=%d", byte_size);
+                                    return binary_array_pos+byte_size;
+
+//                                    assert(0, format("Size of %s not supported yet", E));
                                 }
                                 else {
                                     return valuePos + T.sizeof;

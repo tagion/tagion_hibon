@@ -30,7 +30,7 @@ struct BigNumber {
 
     @trusted
     bool sign() const pure nothrow {
-        return sign;
+        return _sign;
     }
 
     enum ZERO=BigNumber(0);
