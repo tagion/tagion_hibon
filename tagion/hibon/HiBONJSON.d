@@ -138,6 +138,7 @@ struct toJSONT(bool HASHSAFE) {
                                     doc_element[VALUE]=array;
                                 }
                                 else static if(E is BIGINT) {
+                                    doc_element[VALUE]=e.by!(E).toDecimalString;
                                 }
                                 else {
                                     doc_element[VALUE]=toJSONType(e.by!E);
@@ -176,6 +177,9 @@ struct toJSONT(bool HASHSAFE) {
             alias JSONTypeT=UnqualT;
         }
         else static if(is(T : immutable(ubyte)[])) {
+            alias JSONTypeT=string;
+        }
+        else static if(is(T : const BigNumber)) {
             alias JSONTypeT=string;
         }
         else static if(is(UnqualT  : double)) {
@@ -217,7 +221,7 @@ struct toJSONT(bool HASHSAFE) {
             }
         }
         else static if(is(T : const BigNumber)) {
-            assert(0, format("%s is not supported yet:", T.stringof));
+            return x.to!string;
         }
         else {
             static assert(0, format("Unsuported type %s", T.stringof));
@@ -263,7 +267,7 @@ HiBON toHiBON(scope const JSONValue json) {
             return array.idup;
         }
         else static if (is(T : const BigNumber)) {
-
+            return BigNumber(jvalue.str);
         }
         else {
             static assert(0, format("Type %s is not supported", T.stringof));
@@ -313,9 +317,10 @@ HiBON toHiBON(scope const JSONValue json) {
                                 sub_result[key]=array.idup;
 
                             }
-                            else static if (E is BIGINT) {
-                                assert(0, format("%s is not supported yet", E));
-                            }
+                            // else static if (E is BIGINT) {
+
+                            //     assert(0, format("%s is not supported yet", E));
+                            //}
                             else {
                                 sub_result[key]=get!T(value);
                             }
@@ -385,6 +390,8 @@ unittest {
         long,   Type.INT64.stringof,
         uint,   Type.UINT32.stringof,
         ulong,  Type.UINT64.stringof,
+        BigNumber, Type.BIGINT.stringof,
+
 //                utc_t,  Type.UTC.stringof
         );
 
@@ -396,6 +403,8 @@ unittest {
     test_tabel.UINT32   = 42;
     test_tabel.UINT64   = 0x0123_3456_789A_BCDF;
     test_tabel.BOOLEAN  = true;
+    test_tabel.BIGINT   = BigNumber("-1234_5678_9123_1234_5678_9123_1234_5678_9123");
+
 
     alias TabelArray = Tuple!(
         immutable(ubyte)[],  Type.BINARY.stringof,
@@ -441,7 +450,8 @@ unittest {
     const doc=Document(hibon.serialize);
 
     auto json=doc.toJSON(true);
-    //  writefln("%s", json.toPrettyString);
+    import std.stdio;
+    writefln("%s", json.toPrettyString);
     string str=json.toString;
     auto parse=str.parseJSON;
     auto h=parse.toHiBON;

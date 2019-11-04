@@ -52,6 +52,13 @@ struct BigNumber {
     }
 
     @trusted
+    this(const(BigNumber) big) pure nothrow {
+        this.x=big.x;
+    }
+
+
+
+    @trusted
     this(Range)(Range s) if (
         isBidirectionalRange!Range &&
         isSomeChar!(ElementType!Range) &&
@@ -191,5 +198,29 @@ struct BigNumber {
                 T.stringof, x, T.min, T.max));
         return x.to!T;
     }
+
+    @trusted
+    void toString(scope void delegate(const (char)[]) sink, string formatString) const {
+        return x.toString(sink, formatString);
+    }
+
+    @trusted
+    void toString(scope void delegate(const(char)[]) sink, const ref FormatSpec!char f) const {
+        return x.toString(sink, f);
+    }
+
+    @trusted
+    string toHex() const {
+        return x.toHex;
+    }
+
+    @trusted
+    string toDecimalString() const {
+        return x.toDecimalString;
+    }
+// size_t toHash() const @safe nothrow {
+    //     return x.toHash;
+    // }
+
 
 }

@@ -133,7 +133,12 @@ ubyte[] fromHex(in string hex) pure nothrow {
             }
             else {
                 this.type = E;
-                this.value= cast(UnqualT)x;
+                static if (E is Type.BIGINT) {
+                    this.value=x;
+                }
+                else {
+                    this.value= cast(UnqualT)x;
+                }
             }
 
         }
@@ -361,6 +366,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
         // Note that the keys are in alphabetic order
         // Because the HiBON keys must be ordered
         alias Tabel = Tuple!(
+            BigNumber, Type.BIGINT.stringof,
             bool,   Type.BOOLEAN.stringof,
             float,  Type.FLOAT32.stringof,
             double, Type.FLOAT64.stringof,
@@ -368,6 +374,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
             long,   Type.INT64.stringof,
             uint,   Type.UINT32.stringof,
             ulong,  Type.UINT64.stringof,
+
 //                utc_t,  Type.UTC.stringof
             );
 
@@ -379,6 +386,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
         test_tabel.UINT32   = 42;
         test_tabel.UINT64   = 0x0123_3456_789A_BCDF;
         test_tabel.BOOLEAN  = true;
+        test_tabel.BIGINT   = BigNumber("-1234_5678_9123_1234_5678_9123_1234_5678_9123");
 
         // Note that the keys are in alphabetic order
         // Because the HiBON keys must be ordered
@@ -418,7 +426,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
 
         { // Single element
             auto hibon = new HiBON;
-            enum pos=1;
+            enum pos=2;
             static assert(is(test_tabel.Types[pos] == float));
             hibon[test_tabel.fieldNames[pos]] = test_tabel[pos];
 
