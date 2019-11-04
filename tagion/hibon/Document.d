@@ -3,7 +3,7 @@
  *
  */
 module tagion.hibon.Document;
-import std.stdio;
+
 
 import std.format;
 import std.meta : AliasSeq, Filter;
@@ -250,10 +250,7 @@ static assert(uint.sizeof == 4);
         }
         else static if(is(T : const BigNumber)) {
             import std.internal.math.biguintnoasm : BigDigit;
-            debug writefln("%s Before size=%d", T.stringof, size);
             size += bool.sizeof+uint.sizeof+x.data.length*BigDigit.sizeof;
-            debug writefln("%s After  size=%d", T.stringof, size);
-
         }
         else {
             size += T.sizeof;
@@ -283,13 +280,9 @@ static assert(uint.sizeof == 4);
         else static if (is(T : const BigNumber)) {
             import std.internal.math.biguintnoasm : BigDigit;
             immutable size=cast(uint)(bool.sizeof+x.data.length*BigDigit.sizeof);
-            debug writefln("BigNumber size=%d", size);
             buffer.binwrite(size, &index);
-            debug writefln("BigNumber index=%d", index);
             buffer.array_write(x.data, index);
-            debug writefln("BigNumber index=%d", index);
             buffer.binwrite(x.sign, &index);
-            debug writefln("BigNumber index=%d", index);
         }
         else {
             buffer.binwrite(x, &index);
@@ -313,8 +306,6 @@ static assert(uint.sizeof == 4);
         index = make(buffer, tabel_range);
         immutable data = buffer[0..index].idup;
         const doc=Document(data);
-
-        writefln("data=%s", data);
 
         auto tabelR=doc.range!(immutable(ubyte)[][]);
         foreach(t; tabel_range) {
@@ -438,9 +429,7 @@ static assert(uint.sizeof == 4);
         test_tabel.UINT32   = 42;
         test_tabel.UINT64   = 0x0123_3456_789A_BCDF;
         test_tabel.BOOLEAN  = true;
-        writeln("Before bigint");
         test_tabel.BIGINT   = BigNumber("-1234_5678_9123_1234_5678_9123_1234_5678_9123");
-        writeln("After bigint");
 
         alias TabelArray = Tuple!(
             immutable(ubyte)[],  Type.BINARY.stringof,
@@ -466,7 +455,6 @@ static assert(uint.sizeof == 4);
         test_tabel_array.UINT64_ARRAY  = [0x17, 0xffff_aaaa, 1, 42];
         test_tabel_array.BOOLEAN_ARRAY = [true, false];
         test_tabel_array.STRING        = "Text";
-        writeln("After tabel");
 
         { // Document with simple types
             //test_tabel.UTC      = 1234;
@@ -475,12 +463,8 @@ static assert(uint.sizeof == 4);
 
             { // Document with a single value
                 index = make(buffer, test_tabel, 1);
-                writefln("index=%d", index);
                 immutable data = buffer[0..index].idup;
-//                immutable data = buffer[0..$].idup;
-                writefln("data=%s", data);
                 const doc=Document(data);
-                writefln("doc.length=%d", doc.length);
                 assert(doc.length is 1);
                 // assert(doc[Type.FLOAT32.stringof].get!float == test_tabel[0]);
             }
@@ -495,16 +479,13 @@ static assert(uint.sizeof == 4);
             }
 
             { // Document including basic types
-                writefln("Before make");
                 index = make(buffer, test_tabel);
-                writefln("After make");
                 immutable data = buffer[0..index].idup;
                 const doc=Document(data);
 
                 auto keys=doc.keys;
                 foreach(i, t; test_tabel) {
                     enum name = test_tabel.fieldNames[i];
-                    writefln("%d name=%s", i, name);
                     alias U = test_tabel.Types[i];
                     enum  E = Value.asType!U;
                     assert(doc.hasElement(name));

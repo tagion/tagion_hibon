@@ -215,7 +215,7 @@ struct BigNumber {
     }
 
     @trusted
-    string toDecimalString() const {
+    string toDecimalString() const pure nothrow {
         return x.toDecimalString;
     }
 // size_t toHash() const @safe nothrow {
