@@ -418,8 +418,8 @@ static assert(uint.sizeof == 4);
         }
 
         alias Tabel = Tuple!(
-            // float,  Type.FLOAT32.stringof,
-            // double, Type.FLOAT64.stringof,
+            float,  Type.FLOAT32.stringof,
+            double, Type.FLOAT64.stringof,
             BigNumber, Type.BIGINT.stringof,
             bool,   Type.BOOLEAN.stringof,
             int,    Type.INT32.stringof,
@@ -431,8 +431,8 @@ static assert(uint.sizeof == 4);
             );
 
         Tabel test_tabel;
-        // test_tabel.FLOAT32 = 1.23;
-        // test_tabel.FLOAT64 = 1.23e200;
+        test_tabel.FLOAT32 = 1.23;
+        test_tabel.FLOAT64 = 1.23e200;
         test_tabel.INT32   = -42;
         test_tabel.INT64   = -0x0123_3456_789A_BCDF;
         test_tabel.UINT32   = 42;
