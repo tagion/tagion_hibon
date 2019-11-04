@@ -697,7 +697,15 @@ static assert(uint.sizeof == 4);
                                 }
                             }
                             else static if (E is BIGINT) {
-                                assert(0, format("Type %s not implemented", E));
+                                import std.internal.math.biguintnoasm : BigDigit;
+                                immutable birary_array_pos = valuePos+uint.sizeof;
+                                immutable byte_size = *cast(uint*)(data[valuePos..birary_array_pos].ptr);
+                                immutable len = byte_size / BigDigit.sizeof;
+                                immutable dig=(cast(immutable(BigDigit*))(data[birary_array_pos..$].ptr))[0..len];
+                                const sign=data[birary_array_pos+byte_size] !is 0;
+                                const big=BigNumber(sign, dig);
+                                return new Value(big);
+                                //  assert(0, format("Type %s not implemented", E));
                             }
                             else {
                                 if (isHiBONType(type)) {

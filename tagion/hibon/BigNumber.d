@@ -70,15 +70,37 @@ struct BigNumber {
     //     this.x=BigInt(x);
     // }
 
+    // @trusted
+    // this(immutable(ubyte[]) data) {
+    //     assert(
+    //         (data.length % BigDigit.sizeof) is bool.sizeof &&
+    //         (data.length > BigDigit.sizeof),
+    //         format("Size of byte stream does not match the Number size (size=%d)", data.length));
+    //     this._data=cast(BigDigit[])(data)[0..data.length/BigDigit.sizeof].dup;
+    //     this._sign=(data[$-1] !is 0);
+    // }
+
+    // @trusted
+    // this(immutable(ubyte[]) data) const {
+    //     assert(
+    //         (data.length % BigDigit.sizeof) is bool.sizeof &&
+    //         (data.length > BigDigit.sizeof),
+    //         format("Size of byte stream does not match the Number size (size=%d)", data.length));
+    //     this._data=cast(BigDigit[])(data)[0..data.length/BigDigit.sizeof].dup;
+    //     this._sign=(data[$-1] !is 0);
+    // }
+
     @trusted
-    this(immutable(ubyte[]) data) {
-        assert(
-            (data.length % BigDigit.sizeof) is bool.sizeof &&
-            (data.length > BigDigit.sizeof),
-            format("Size of byte stream does not match the Number size (size=%d)", data.length));
-        this._data=cast(BigDigit[])(data)[0..data.length/BigDigit.sizeof].dup;
-        this._sign=(data[$-1] !is 0);
+    this(const bool sign, const(BigDigit[]) dig) {
+        _sign=sign;
+        _data=dig.dup;
     }
+
+    // @trusted
+    // this(const bool sign, const(BigDigit[]) dig) {
+    //     _sign=sign;
+    //     _data=dig.dup;
+    // }
 
     @trusted
     BigNumber opBinary(string op, T)(T y) pure nothrow const {
