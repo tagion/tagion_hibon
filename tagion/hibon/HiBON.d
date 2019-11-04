@@ -1,5 +1,3 @@
-// Written in the D programming language.
-
 /**
  * Implements HiBON
  * Hash-invariant Binary Object Notation

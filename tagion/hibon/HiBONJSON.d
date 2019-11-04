@@ -450,8 +450,8 @@ unittest {
     const doc=Document(hibon.serialize);
 
     auto json=doc.toJSON(true);
-    import std.stdio;
-    writefln("%s", json.toPrettyString);
+    // import std.stdio;
+    // writefln("%s", json.toPrettyString);
     string str=json.toString;
     auto parse=str.parseJSON;
     auto h=parse.toHiBON;
