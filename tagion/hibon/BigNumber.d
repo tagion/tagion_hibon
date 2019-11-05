@@ -113,14 +113,10 @@ struct BigNumber {
     BigNumber opBinary(string op, T)(T y) pure nothrow const {
         static if (is(T:const(BigNumber))) {
             enum code=format("auto result=x %s y.x;", op);
-//            auto result=x + y.x;
         }
         else {
             enum code=format("auto result=x %s y;", op);
-//            auto result=x + y;
         }
-        //      enum code=format("x %s y.x;", op);
-        pragma(msg, code);
         mixin(code);
         return BigNumber(result);
     }
@@ -144,8 +140,6 @@ struct BigNumber {
         else {
             enum code=format("auto result=x %s y;", op);
         }
-        //enum code=format("x%s=y.x;",op);
-        pragma(msg, code);
         mixin(code);
         return BigNumber(result);
     }
