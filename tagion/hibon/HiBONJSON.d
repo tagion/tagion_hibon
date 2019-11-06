@@ -20,7 +20,7 @@ import tagion.TagionExceptions : Check;
 import tagion.utils.Miscellaneous : toHex=toHexString, decode;
 
 /**
- * Exception type used by tagion.utils.BSON module
+ * Exception type used by tagion.hibon.HiBON module
  */
 @safe
 class HiBON2JSONException : HiBONException {
@@ -55,7 +55,7 @@ enum typeMap=[
     Type.INT64    : "i64",
     Type.UINT32   : "u32",
     Type.UINT64   : "u64",
-    Type.BIGINT   : "big",
+    Type.BIGINT   : "int",
 
     Type.DEFINED_NATIVE : NotSupported,
     Type.BINARY         : "bin",
