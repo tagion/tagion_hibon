@@ -135,13 +135,13 @@ struct BigNumber {
     @trusted
     BigNumber opOpAssign(string op, T)(T y) pure nothrow {
         static if (is(T:const(BigNumber))) {
-            enum code=format("auto result=x %s y.x;", op);
+            enum code=format("this.x %s= y.x;", op);
         }
         else {
-            enum code=format("auto result=x %s y;", op);
+            enum code=format("this.x %s= y;", op);
         }
         mixin(code);
-        return BigNumber(result);
+        return this;
     }
 
     @trusted
