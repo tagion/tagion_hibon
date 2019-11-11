@@ -13,6 +13,7 @@ import tagion.hibon.HiBONBase : Type, isNative, isArray, isHiBONType;
 import tagion.hibon.HiBONException;
 import tagion.hibon.HiBON : HiBON;
 import tagion.hibon.Document : Document;
+import tagion.Message : message;
 // import tagion.utils.JSONOutStream;
 // import tagion.utils.JSONInStream : JSONType;
 
@@ -154,7 +155,7 @@ struct toJSONT(bool HASHSAFE) {
                         }
                     }
                 default:
-                    .check(0, format("HiBON type %s notsupported and can not be converted to JSON", e.type));
+                    .check(0, message("HiBON type %s notsupported and can not be converted to JSON", e.type));
                 }
             }
         }
@@ -224,7 +225,7 @@ struct toJSONT(bool HASHSAFE) {
             return x.to!string;
         }
         else {
-            static assert(0, format("Unsuported type %s", T.stringof));
+            static assert(0, message("Unsuported type %s", T.stringof));
         }
     }
 
@@ -304,11 +305,11 @@ HiBON toHiBON(scope const JSONValue json) {
                                 scope str=value.str;
                                 enum HEX_PREFIX="0x";
                                 .check(str[0..HEX_PREFIX.length].toLower == HEX_PREFIX,
-                                    format("Hex prefix %s expected for type %s", HEX_PREFIX, E));
+                                    message("Hex prefix %s expected for type %s", HEX_PREFIX, E));
                                 sub_result[key]=decode(str[HEX_PREFIX.length..$]);
                             }
                             else static if (isArray(E)) {
-                                .check(value.type is JSONType.array, format("JSON array expected for %s for member %s", E, key));
+                                .check(value.type is JSONType.array, message("JSON array expected for %s for member %s", E, key));
                                 alias U=Unqual!(ForeachType!T);
                                 scope array=new U[value.array.length];
                                 foreach(size_t i, ref e; value) {
