@@ -205,7 +205,6 @@ union ValueT(bool NATIVE=false, HiBON,  Document) {
     @trusted
     auto by(Type type)() pure const {
         enum code=GetFunctions!("", true, __traits(allMembers, ValueT));
-//        pragma(msg, code);
         mixin(code);
         assert(0);
     }
