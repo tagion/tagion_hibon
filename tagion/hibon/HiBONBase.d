@@ -3,7 +3,6 @@ module tagion.hibon.HiBONBase;
 import tagion.Types;
 import tagion.Base : isOneOf;
 
-
 import std.format;
 import std.meta : AliasSeq; //, Filter;
 import std.traits : isBasicType, isSomeString, isIntegral, isNumeric, isType, EnumMembers, Unqual, getUDAs, hasUDA;
