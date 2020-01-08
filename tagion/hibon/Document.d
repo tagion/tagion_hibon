@@ -271,12 +271,14 @@ static assert(uint.sizeof == 4);
         return size;
     }
 
+    @trusted
     static void buildKey(ref ubyte[] buffer, Type type, string key, ref size_t index) pure {
         buffer.binwrite(type, &index);
         buffer.binwrite(cast(ubyte)(key.length), &index);
         buffer.array_write(key, index);
     }
 
+    @trusted
     static void build(T)(ref ubyte[] buffer, Type type, string key, const(T) x, ref size_t index) pure {
         buildKey(buffer, type, key, index);
         // buffer.binwrite(type, &index);

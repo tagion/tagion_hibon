@@ -26,45 +26,6 @@ import tagion.hibon.HiBONException;
 import tagion.Message : message;
 import tagion.Base : CastTo;
 
-version(none)
-@trusted
-string toHex(in ubyte[] nums) pure nothrow {
-    immutable static lowerHexDigits = "0123456789abcdef";
-
-    char[] result = new char[](nums.length * 2);
-    foreach (i, num; nums) {
-        immutable index = i * 2;
-        result[index]     = lowerHexDigits[(num & 0xf0) >> 4];
-        result[index + 1] = lowerHexDigits[num & 0x0f];
-    }
-
-    return assumeUnique(result);
-}
-
-
-version(none)
-@safe
-ubyte[] fromHex(in string hex) pure nothrow {
-    static ubyte toNum(in char c) pure nothrow
-    {
-        if ('0' <= c && c <= '9')
-            return cast(ubyte)(c - '0');
-        if ('a' <= c && c <= 'f')
-            return cast(ubyte)(c - 'a' + 10);
-        assert(false, "Out of hex: " ~ c);
-    }
-
-    ubyte[] result = new ubyte[](hex.length / 2);
-
-    foreach (i, ref num; result) {
-        immutable index = i * 2;
-        num = cast(ubyte)((toNum(hex[index]) << 4) | toNum(hex[index + 1]));
-    }
-
-    return result;
-}
-
-
 @safe class HiBON {
     alias Value=ValueT!(true, HiBON,  Document);
 
@@ -214,6 +175,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
             }
         }
 
+        @trusted
         protected void appendList(Type E)(ref ubyte[] buffer, ref size_t index)  const pure if (isNativeArray(E)) {
             immutable size_index = index;
             buffer.binwrite(uint.init, &index);
