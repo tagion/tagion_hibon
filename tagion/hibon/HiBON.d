@@ -23,6 +23,7 @@ import tagion.hibon.BigNumber;
 import tagion.hibon.Document;
 import tagion.hibon.HiBONBase;
 import tagion.hibon.HiBONException;
+import tagion.Message : message;
 import tagion.Base : CastTo;
 
 version(none)
@@ -86,6 +87,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
         return buffer.idup;
     }
 
+    @trusted
     private void append(ref ubyte[] buffer, ref size_t index) const pure {
         immutable size_index = index;
         buffer.binwrite(uint.init, &index);
@@ -153,9 +155,9 @@ ubyte[] fromHex(in string hex) pure nothrow {
             return result;
         }
 
-        T get(T)() inout {
+        const(T) get(T)() const {
             enum E = Value.asType!T;
-            .check(E is type, format("Expected HiBON type %s but apply type %s (%s)", type, E, T.stringof));
+            .check(E is type, message("Expected HiBON type %s but apply type %s (%s)", type, E, T.stringof));
             return value.by!E;
         }
 
@@ -292,7 +294,7 @@ ubyte[] fromHex(in string hex) pure nothrow {
     }
 
     void opIndexAssign(T)(T x, in string key) {
-        .check(is_key_valid(key), format("Key is not a valid format '%s'", key));
+        .check(is_key_valid(key), message("Key is not a valid format '%s'", key));
         Member new_member=new Member(x, key);
         _members.insert(new_member);
     }
@@ -300,21 +302,21 @@ ubyte[] fromHex(in string hex) pure nothrow {
     void opIndexAssign(T)(T x, const size_t index) {
         const key=index.to!string;
         static if(!is(size_t == uint) ) {
-            .check(index <= uint.max, format("Index out of range (index=%d)", index));
+            .check(index <= uint.max, message("Index out of range (index=%d)", index));
         }
         opIndexAssign(x, key);
     }
 
     const(Member) opIndex(in string key) const {
         auto range=_members.equalRange(Member.search(key));
-        .check(!range.empty, format("Member '%s' does not exist", key) );
+        .check(!range.empty, message("Member '%s' does not exist", key) );
         return range.front;
     }
 
     const(Member) opIndex(const size_t index) const {
         const key=index.to!string;
         static if(!is(size_t == uint) ) {
-            .check(index <= uint.max, format("Index out of range (index=%d)", index));
+            .check(index <= uint.max, message("Index out of range (index=%d)", index));
         }
         return opIndex(key);
     }
