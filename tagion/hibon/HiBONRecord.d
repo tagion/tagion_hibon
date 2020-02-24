@@ -101,7 +101,6 @@ mixin template HiBONRecord(string TYPE="") {
     }
 
     this(const Document doc) {
-        import std.stdio;
         static if (TYPE.length) {
             string _type=doc[TYPENAME].get!string;
             .check(_type == TYPE, format("Wrong %s type %s should be %s", TYPENAME, _type, type));
@@ -150,27 +149,12 @@ mixin template HiBONRecord(string TYPE="") {
                     }
                     else {
                         static if (is(BaseT:U[], U)) {
-                            static if (Document.Value.hasType!U) {
+                            static if (hasMember!(U, "toHiBON")) {
                                 MemberT array;
                                 auto doc_array=doc[name].get!Document;
                                 static if (optional) {
                                     if (doc_array.length == 0) {
-                                        break ForeachTuple;
-                                    }
-                                }
-                                check(doc_array.isArray, message("Document array expected for %s member",  name));
-                                foreach(e; doc_array[]) {
-                                    array~=e.get!U;
-                                }
-                                m=array;
-//                                static assert(0, format("Special handling of array %s", MemberT.stringof));
-                            }
-                            else static if (hasMember!(U, "toHiBON")) {
-                                MemberT array;
-                                auto doc_array=doc[name].get!Document;
-                                static if (optional) {
-                                    if (doc_array.length == 0) {
-                                        break ForeachTuple;
+                                        continue ForeachTuple;
                                     }
                                 }
                                 check(doc_array.isArray, message("Document array expected for %s member",  name));
@@ -179,8 +163,22 @@ mixin template HiBONRecord(string TYPE="") {
                                     array~=U(sub_doc);
                                 }
                                 enum doc_array_code=format("%s=array;", member_name);
-                                pragma(msg, doc_array_code);
                                 mixin(doc_array_code);
+                            }
+                            else static if (Document.Value.hasType!U) {
+                                MemberT array;
+                                auto doc_array=doc[name].get!Document;
+                                static if (optional) {
+                                    if (doc_array.length == 0) {
+                                        continue ForeachTuple;
+                                    }
+                                }
+                                check(doc_array.isArray, message("Document array expected for %s member",  name));
+                                foreach(e; doc_array[]) {
+                                    array~=e.get!U;
+                                }
+                                m=array;
+//                                static assert(0, format("Special handling of array %s", MemberT.stringof));
                             }
                             else {
                                 static assert(is(U == immutable), format("The array must be immutable not %s but is %s",
