@@ -1,10 +1,15 @@
 module tagion.hibon.HiBONRecord;
 //import std.traits : getUDAs, hasUDA, getSymbolsByUDA, OriginalType, Unqual;
+
+import file=std.file;
+import std.exception : assumeUnique;
+
 import tagion.Base : basename;
 import tagion.hibon.HiBONBase : ValueT;
 
 import tagion.hibon.HiBON : HiBON;
 import tagion.hibon.Document : Document;
+import tagion.hibon.HiBONException;
 /++
  Label use to set the HiBON member name
 +/
@@ -183,6 +188,7 @@ mixin template HiBONRecord(string TYPE="") {
                             else {
                                 static assert(is(U == immutable), format("The array must be immutable not %s but is %s",
                                         BaseT.stringof, cast(immutable(U)[]).stringof));
+                                pragma(msg, code, " :  ", is(BaseT ==class), " : ", BaseT);
                                 mixin(code);
                             }
                         }
@@ -195,4 +201,16 @@ mixin template HiBONRecord(string TYPE="") {
             }
         }
     }
+}
+
+void fwrite(string filename, const HiBON hibon) {
+    file.write(filename, hibon.serialize);
+}
+
+
+const(Document) fread(string filename) {
+    immutable data=assumeUnique(cast(ubyte[])file.read(filename));
+    const doc=Document(data);
+    .check(doc.isInOrder, "HiBON Document format failed");
+    return doc;
 }

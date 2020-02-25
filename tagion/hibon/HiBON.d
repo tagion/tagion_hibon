@@ -15,7 +15,7 @@ import std.meta : staticIndexOf;
 import std.algorithm.iteration : map, fold, each;
 import std.traits : EnumMembers, ForeachType, Unqual, isMutable, isBasicType;
 import std.meta : AliasSeq;
-//import std.bitmanip : write;
+
 import std.conv : to;
 import std.typecons : TypedefType;
 
@@ -679,5 +679,4 @@ import tagion.Base : CastTo;
             }
         }
     }
-
 }
