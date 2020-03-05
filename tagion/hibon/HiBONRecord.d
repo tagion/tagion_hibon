@@ -1,5 +1,4 @@
 module tagion.hibon.HiBONRecord;
-//import std.traits : getUDAs, hasUDA, getSymbolsByUDA, OriginalType, Unqual;
 
 import file=std.file;
 import std.exception : assumeUnique;
@@ -14,11 +13,15 @@ import tagion.hibon.HiBONException;
  Label use to set the HiBON member name
 +/
 struct Label {
-    string name;
-    bool optional;
-//    string method;
+    string name; /// Name of the HiBON member
+    bool optional; /// This flag is set to true if this paramer is optional
 }
 
+/++
+ Gets the Label for HiBON member
+ Params:
+ member = is the member alias
++/
 template GetLabel(alias member) {
     import std.traits : getUDAs, hasUDA;
     static if (hasUDA!(member, Label)) {
@@ -29,6 +32,21 @@ template GetLabel(alias member) {
     }
 }
 
+/++
+ HiBON Helper template to implement constructor and toHiBON member functions
+ Params:
+ TYPE = is used to set a HiBON record type ('$type')
+ Examples:
+ --------------------
+ struct Test {
+ @Label("$X") uint x; // The member in HiBON is "$X"
+ string name;         // The member in HiBON is "name"
+ @Label("num", true); // The member in HiBON is "num" and is optional
+ @Label("") bool dummy; // This parameter is not included in the HiBON
+ HiBONRecord("TEST");   // The "$type" is set to "TEST"
+ }
+ --------------------
++/
 mixin template HiBONRecord(string TYPE="") {
     import std.traits : getUDAs, hasUDA, getSymbolsByUDA, OriginalType, Unqual, hasMember;
     import std.typecons : TypedefType;
@@ -200,14 +218,27 @@ mixin template HiBONRecord(string TYPE="") {
     }
 }
 
+/++
+ Serialize the hibon and writes it a file
+ Params:
+ filename = is the name of the file
+ hibon = is the HiBON object
++/
 void fwrite(string filename, const HiBON hibon) {
     file.write(filename, hibon.serialize);
 }
 
 
+/++
+ Reads a HiBON document from a file
+ Params:
+ filename = is the name of the file
+ Returns:
+ The Document read from the file
++/
 const(Document) fread(string filename) {
     immutable data=assumeUnique(cast(ubyte[])file.read(filename));
     const doc=Document(data);
-    .check(doc.isInOrder, "HiBON Document format failed");
+    .check(doc.isInorder, "HiBON Document format failed");
     return doc;
 }
