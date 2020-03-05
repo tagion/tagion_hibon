@@ -139,7 +139,6 @@ mixin template HiBONRecord(string TYPE="") {
                     alias BaseT=TypedefType!MemberT;
                     alias UnqualT=Unqual!BaseT;
                     static if (is(BaseT == struct)) {
-                        pragma(msg, "@@@ ", TypedefType!BaseT);
                         auto dub_doc = doc[name].get!Document;
                         enum doc_code=format("%s=BaseT(dub_doc);", member_name);
                         mixin(doc_code);
@@ -188,12 +187,10 @@ mixin template HiBONRecord(string TYPE="") {
                             else {
                                 static assert(is(U == immutable), format("The array must be immutable not %s but is %s",
                                         BaseT.stringof, cast(immutable(U)[]).stringof));
-                                pragma(msg, code, " :  ", is(BaseT ==class), " : ", BaseT);
                                 mixin(code);
                             }
                         }
                         else {
-                            pragma(msg, code);
                             mixin(code);
                         }
                     }
