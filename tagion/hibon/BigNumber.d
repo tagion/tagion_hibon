@@ -47,9 +47,9 @@ struct BigNumber {
 
 
     enum {
-        ZERO=BigNumber(0); /// BigNumber zero
-        ONE=BigNumber(1);  /// BigNumber one
-        MINUSONE=BigNumber(-1); /// BigNumber negative one
+        ZERO=BigNumber(0), /// BigNumber zero
+        ONE=BigNumber(1),  /// BigNumber one
+        MINUSONE=BigNumber(-1) /// BigNumber negative one
     }
 
     /++
