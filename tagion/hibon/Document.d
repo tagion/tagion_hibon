@@ -755,6 +755,8 @@ static assert(uint.sizeof == 4);
             /++
              Returns:
              The HiBON Value of the element
+             throws:
+             if  the type is invalid and HiBONException is thrown
              +/
             @trusted const(Value*) value() {
                 with(Type)
@@ -774,7 +776,6 @@ static assert(uint.sizeof == 4);
                                     immutable byte_size = *cast(uint*)(data[valuePos..birary_array_pos].ptr);
                                     immutable len = byte_size / U.sizeof;
                                     return new Value((cast(immutable(U)*)(data[birary_array_pos..$].ptr))[0..len]);
-//                                }
                                 }
                             }
                             else static if (E is BIGINT) {
