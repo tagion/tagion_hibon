@@ -8,7 +8,7 @@ import tagion.hibon.HiBONBase : ValueT;
 
 import tagion.hibon.HiBON : HiBON;
 import tagion.hibon.Document : Document;
-import tagion.hibon.HiBONException;
+
 
 /++
  Label use to set the HiBON member name
@@ -53,7 +53,8 @@ enum HiBONPrefix {
  }
  --------------------
 +/
-mixin template HiBONRecord(string TYPE="") {
+mixin template HiBONRecord(string TYPE="", alias finalize=void) {
+    import HiBONException=tagion.hibon.HiBONException;
     import std.traits : getUDAs, hasUDA, getSymbolsByUDA, OriginalType, Unqual, hasMember;
     import std.typecons : TypedefType;
     import tagion.hibon.HiBONException : check;
@@ -132,7 +133,7 @@ mixin template HiBONRecord(string TYPE="") {
     this(const Document doc) {
         static if (TYPE.length) {
             string _type=doc[TYPENAME].get!string;
-            .check(_type == TYPE, format("Wrong %s type %s should be %s", TYPENAME, _type, type));
+            HiBONException.check(_type == TYPE, format("Wrong %s type %s should be %s", TYPENAME, _type, type));
         }
     ForeachTuple:
         foreach(i, ref m; this.tupleof) {
@@ -221,6 +222,9 @@ mixin template HiBONRecord(string TYPE="") {
                 }
             }
         }
+        static if (!is(finalize==void)) {
+            finalize;
+        }
     }
 }
 
@@ -243,8 +247,10 @@ void fwrite(string filename, const HiBON hibon) {
  The Document read from the file
 +/
 const(Document) fread(string filename) {
+    import HiBONException=tagion.hibon.HiBONException;
+
     immutable data=assumeUnique(cast(ubyte[])file.read(filename));
     const doc=Document(data);
-    .check(doc.isInorder, "HiBON Document format failed");
+    HiBONException.check(doc.isInorder, "HiBON Document format failed");
     return doc;
 }
