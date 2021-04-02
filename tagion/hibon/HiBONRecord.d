@@ -138,7 +138,7 @@ template GetLabel(alias member) {
 //     return value.keys[0] is HiBONPrefix.HASH;
 // }
 
-enum TYPENAME=HiBONPrefix.PARAM~"@";
+enum TYPENAME=HiBONPrefix.PARAM~"type";
 enum VOID="*";
 
 mixin template HiBONRecordType() {
